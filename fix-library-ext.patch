@@ -1,0 +1,75 @@
+diff --git a/numpy/distutils/misc_util.py b/numpy/distutils/misc_util.py
+index 7a38bed..5bd3a90 100644
+--- a/numpy/distutils/misc_util.py
++++ b/numpy/distutils/misc_util.py
+@@ -605,11 +605,29 @@ def get_shared_lib_extension(is_python_ext=False):
+     Linux, but not on OS X.
+ 
+     """
+-    so_ext = distutils.sysconfig.get_config_var('SO') or ''
+-    # fix long extension for Python >=3.2, see PEP 3149.
+-    if (not is_python_ext) and 'SOABI' in distutils.sysconfig.get_config_vars():
+-        # Does nothing unless SOABI config var exists
+-        so_ext = so_ext.replace('.' + distutils.sysconfig.get_config_var('SOABI'), '', 1)
++    confvars = distutils.sysconfig.get_config_vars()
++    # SO is deprecated in 3.3.1, use EXT_SUFFIX instead
++    so_ext = confvars.get('EXT_SUFFIX', None)
++    if so_ext is None:
++        so_ext = confvars.get('SO', '')
++
++    if not is_python_ext:
++        # hardcode known values, config vars (including SHLIB_SUFFIX) are
++        # unreliable (see #3182)
++        # darwin, windows and debug linux are wrong in 3.3.1 and older
++        if (sys.platform.startswith('linux') or
++            sys.platform.startswith('gnukfreebsd')):
++            so_ext = '.so'
++        elif sys.platform.startswith('darwin'):
++            so_ext = '.dylib'
++        elif sys.platform.startswith('win'):
++            so_ext = '.dll'
++        else:
++            # fall back to config vars for unknown platforms
++            # fix long extension for Python >=3.2, see PEP 3149.
++            if 'SOABI' in confvars:
++                # Does nothing unless SOABI config var exists
++                so_ext = so_ext.replace('.' + confvars.get('SOABI'), '', 1)
+ 
+     return so_ext
+ 
+diff --git a/numpy/distutils/tests/test_misc_util.py b/numpy/distutils/tests/test_misc_util.py
+index 448800b..0f870d3 100644
+--- a/numpy/distutils/tests/test_misc_util.py
++++ b/numpy/distutils/tests/test_misc_util.py
+@@ -1,7 +1,8 @@
+ #!/usr/bin/env python
+ 
+ from numpy.testing import *
+-from numpy.distutils.misc_util import appendpath, minrelpath, gpaths, rel_path
++from numpy.distutils.misc_util import appendpath, minrelpath, \
++    gpaths, get_shared_lib_extension
+ from os.path import join, sep, dirname
+ 
+ ajoin = lambda *paths: join(*((sep,)+paths))
+@@ -53,6 +54,21 @@ class TestGpaths(TestCase):
+         f = gpaths('system_info.py', local_path)
+         assert_(join(local_path,'system_info.py')==f[0],`f`)
+ 
++class TestSharedExtension(TestCase):
++
++    def test_get_shared_lib_extension(self):
++        import sys
++        ext = get_shared_lib_extension(is_python_ext=False)
++        if sys.platform.startswith('linux'):
++            assert_equal(ext, '.so')
++        elif sys.platform.startswith('gnukfreebsd'):
++            assert_equal(ext, '.so')
++        elif sys.platform.startswith('darwin'):
++            assert_equal(ext, '.dylib')
++        elif sys.platform.startswith('win'):
++            assert_equal(ext, '.dll')
++        # just check for no crash
++        assert_(get_shared_lib_extension(is_python_ext=True))
+ 
+ if __name__ == "__main__":
+     run_module_suite()
