@@ -7,8 +7,8 @@
 #global relc rc1
 
 Name:           %{?scl_prefix}numpy
-Version:        1.8.2
-Release:        1%{?dist}
+Version:        1.10.4
+Release:        2%{?dist}
 Epoch:          1
 Summary:        A fast multidimensional array facility for Python
 
@@ -84,8 +84,8 @@ env ATLAS=%{?scl:%_root_libdir}%{?!scl:%_libdir} \
     %{__python3} setup.py install --root %{buildroot}
 %{?scl:EOF}
 
-rm -rf docs-f2py ; mv %{buildroot}%{python3_sitearch}/%{pkg_name}/f2py/docs docs-f2py
-mv -f %{buildroot}%{python3_sitearch}/%{pkg_name}/f2py/f2py.1 f2py.1
+mv -f doc/f2py/f2py.1 f2py.1
+rm -rf docs-f2py ; mv doc/f2py docs-f2py
 # save dir for tests, remove sphinx docs
 rm -rf doc/*
 install -D -p -m 0644 f2py.1 %{buildroot}%{_mandir}/man1/f2py.1
@@ -94,6 +94,15 @@ pushd %{buildroot}%{_bindir} &> /dev/null
 
 # resolves rhbz#1053011
 sed -i -e 's"^#!/usr/bin/env python"#!%{?_scl_root}/usr/bin/python"' f2py3
+
+popd &> /dev/null
+
+pushd %{buildroot}%{python3_sitearch}/%{pkg_name} &> /dev/null
+
+# resolves rhbz#1289567
+sed -i -e 's"^#!/usr/bin/python"#!%{?_scl_root}/usr/bin/python"' core/tests/test_arrayprint.py
+sed -i -e 's"^#!/usr/bin/python"#!%{?_scl_root}/usr/bin/python"' distutils/conv_template.py
+sed -i -e 's"^#!/usr/bin/python"#!%{?_scl_root}/usr/bin/python"' distutils/from_template.py
 
 popd &> /dev/null
 
@@ -128,8 +137,6 @@ PYTHONPATH="%{buildroot}%{python3_sitearch}" %{__python3} -c "import numpy ; num
 %{python3_sitearch}/%{pkg_name}/lib
 %{python3_sitearch}/%{pkg_name}/linalg
 %{python3_sitearch}/%{pkg_name}/ma
-%{python3_sitearch}/%{pkg_name}/numarray
-%{python3_sitearch}/%{pkg_name}/oldnumeric
 %{python3_sitearch}/%{pkg_name}/random
 %{python3_sitearch}/%{pkg_name}/testing
 %{python3_sitearch}/%{pkg_name}/tests
@@ -145,6 +152,12 @@ PYTHONPATH="%{buildroot}%{python3_sitearch}" %{__python3} -c "import numpy ; num
 %{python3_sitearch}/%{pkg_name}/f2py
 
 %changelog
+* Tue Feb 16 2016 Nikola Forró <nforro@redhat.com> - 1:1.10.4-2
+- Update shebangs to point to interpreter in collection, rhbz#1289567
+
+* Tue Feb 16 2016 Nikola Forró <nforro@redhat.com> - 1:1.10.4-1
+- Update to 1.10.4
+
 * Wed Jan 28 2015 jchaloup <jchaloup@redhat.com> - 1:1.8.2-1
 - Update to 0.8.2
 
