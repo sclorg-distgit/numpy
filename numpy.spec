@@ -6,7 +6,7 @@
 
 Name:           %{?scl_prefix}numpy
 Version:        1.7.1
-Release:        9%{?dist}
+Release:        10%{?dist}
 Epoch:          1
 Summary:        A fast multidimensional array facility for Python
 
@@ -98,6 +98,15 @@ pushd %{buildroot}%{_bindir} &> /dev/null
 # executables should use hardcoded path to SCL binaries
 sed -i -e 's"^#!/usr/bin/env python"#!%{?_scl_root}/usr/bin/python"' f2py
 
+pushd %{buildroot}%{python_sitearch}/%{pkg_name} &> /dev/null
+
+# resolves rhbz#1289563
+sed -i -e 's"^#!/usr/bin/python"#!%{?_scl_root}/usr/bin/python"' core/tests/test_arrayprint.py
+sed -i -e 's"^#!/usr/bin/python"#!%{?_scl_root}/usr/bin/python"' distutils/conv_template.py
+sed -i -e 's"^#!/usr/bin/python"#!%{?_scl_root}/usr/bin/python"' distutils/from_template.py
+
+popd &> /dev/null
+
 #symlink for includes, BZ 185079
 mkdir -p %{buildroot}%{_includedir}
 ln -s %{python_sitearch}/%{pkg_name}/core/include/numpy/ %{buildroot}%{_includedir}/numpy
@@ -145,6 +154,9 @@ PYTHONPATH="%{buildroot}%{python_sitearch}" %{__python} -c "import numpy ; numpy
 %{python_sitearch}/%{pkg_name}/f2py
 
 %changelog
+* Tue Feb 16 2016 Nikola Forró <nforro@redhat.com> - 1:1.7.1-10
+- Update shebangs to point to interpreter in collection, rhbz#1289563
+
 * Mon Feb 10 2014 Tomas Tomecek <ttomecek@redhat.com> - 1:1.7.1-9
 - Fix CVE-2014-1858, CVE-2014-1859: #1062009
 
