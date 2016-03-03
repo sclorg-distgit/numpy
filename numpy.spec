@@ -18,7 +18,7 @@ Source0:        http://downloads.sourceforge.net/numpy/%{pkg_name}-%{version}%{?
 Patch0:         name-f2py-executable-strictly.patch
 Patch1:         CVE-2014-1858-CVE-2014-1859.patch
 
-BuildRequires:  %{?scl_prefix}python-devel lapack-devel %{?scl_prefix}python-setuptools gcc-gfortran atlas-devel %{?scl_prefix}python-nose
+BuildRequires:  %{?scl_prefix}python2-devel lapack-devel %{?scl_prefix}python-setuptools gcc-gfortran atlas-devel %{?scl_prefix}python-nose
 Requires:       %{?scl_prefix}python-nose
 #BuildRequires:  Cython
 
@@ -38,7 +38,7 @@ this package is a version of f2py that works properly with NumPy.
 Summary:        f2py for numpy
 Group:          Development/Libraries
 Requires:       %{?scl_prefix}%{pkg_name} = %{epoch}:%{version}-%{release}
-Requires:       %{?scl_prefix}python-devel
+Requires:       %{?scl_prefix}python2-devel
 Provides:       %{?scl_prefix}f2py = %{version}-%{release}
 Obsoletes:      %{?scl_prefix}f2py <= 2.45.241_1927
 
@@ -54,14 +54,14 @@ This package includes a version of f2py that works properly with NumPy.
 # http://mail.scipy.org/pipermail/numpy-discussion/2012-July/063530.html
 rm numpy/distutils/command/__init__.py && touch numpy/distutils/command/__init__.py
 
-#cat >> site.cfg <<EOF
-#[DEFAULT]
-#library_dirs = %{?scl:%_root_libdir}%{?!scl:%_libdir}
-#include_dirs = %{?scl:%_root_includedir}%{?!scl:%_includedir}
-#[atlas]
-#library_dirs = %{?scl:%_root_libdir}%{?!scl:%_libdir}/atlas
-#atlas_libs = tatlas
-#EOF
+cat >> site.cfg <<EOF
+[DEFAULT]
+library_dirs = %{?scl:%_root_libdir}%{?!scl:%_libdir}
+include_dirs = %{?scl:%_root_includedir}%{?!scl:%_includedir}
+[atlas]
+library_dirs = %{?scl:%_root_libdir}%{?!scl:%_libdir}/atlas
+atlas_libs = tatlas
+EOF
 
 %build
 
@@ -95,10 +95,8 @@ install -D -p -m 0644 f2py.1 %{buildroot}%{_mandir}/man1/f2py.1
 
 pushd %{buildroot}%{_bindir} &> /dev/null
 
-# resolves rhbz#1053013
+# executables should use hardcoded path to SCL binaries
 sed -i -e 's"^#!/usr/bin/env python"#!%{?_scl_root}/usr/bin/python"' f2py
-
-popd &> /dev/null
 
 pushd %{buildroot}%{python_sitearch}/%{pkg_name} &> /dev/null
 
@@ -162,14 +160,14 @@ PYTHONPATH="%{buildroot}%{python_sitearch}" %{__python} -c "import numpy ; numpy
 * Mon Feb 10 2014 Tomas Tomecek <ttomecek@redhat.com> - 1:1.7.1-9
 - Fix CVE-2014-1858, CVE-2014-1859: #1062009
 
-* Tue Jan 14 2014 Tomas Tomecek <ttomecek@redhat.com> - 1:1.7.1-8
-- update shebang to point to SCL interpreter, rhbz#1053013
-
-* Fri Jan 10 2014 Tomas Tomecek <ttomecek@redhat.com> - 1:1.7.1-7
+* Fri Jan 10 2014 Tomas Tomecek <ttomecek@redhat.com> - 1:1.7.1-8
 - keep doc directory in site-lib rhbz#1051550
 
-* Fri Jan 10 2014 Tomas Tomecek <ttomecek@redhat.com> - 1:1.7.1-6
-- use fix file name of 'f2py' executable rhbz#1049471
+* Fri Jan 10 2014 Tomas Tomecek <ttomecek@redhat.com> - 1:1.7.1-7
+- use fixed file name of 'f2py' executable rhbz#1049471
+
+* Wed Nov 13 2013 Tomas Tomecek <ttomecek@redhat.com> - 1:1.7.1-6
+- RHSCL-1.1 build
 
 * Wed Sep 25 2013 Tomas Tomecek <ttomecek@redhat.com> - 1:1.7.1-5
 - rebuilt with atlas 3.10, rhbz#1009069
