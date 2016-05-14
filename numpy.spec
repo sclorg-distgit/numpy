@@ -8,7 +8,7 @@
 
 Name:           %{?scl_prefix}numpy
 Version:        1.10.4
-Release:        2%{?dist}
+Release:        3%{?dist}
 Epoch:          1
 Summary:        A fast multidimensional array facility for Python
 
@@ -17,6 +17,9 @@ Group:          Development/Languages
 License:        BSD and Python
 URL:            http://www.numpy.org/
 Source0:        http://downloads.sourceforge.net/numpy/%{pkg_name}-%{version}%{?relc}.tar.gz
+
+# Resolves rhbz#1319255
+Patch0:         extend-glibc-blacklist.patch
 
 BuildRequires:  %{?scl_prefix}python-devel lapack-devel %{?scl_prefix}python-setuptools gcc-gfortran atlas-devel %{?scl_prefix}python-nose
 Requires:       %{?scl_prefix}python-nose
@@ -47,6 +50,8 @@ This package includes a version of f2py that works properly with NumPy.
 
 %prep
 %setup -q -n %{pkg_name}-%{version}%{?relc}
+%patch0 -p1
+
 # workaround for rhbz#849713
 # http://mail.scipy.org/pipermail/numpy-discussion/2012-July/063530.html
 rm numpy/distutils/command/__init__.py && touch numpy/distutils/command/__init__.py
@@ -122,7 +127,7 @@ rm -f %{buildroot}%{python3_sitearch}/%{pkg_name}/site.cfg.example
 %check
 cd "%{buildroot}"
 %{?scl:scl enable %{scl} - << \EOF}
-PYTHONPATH="%{buildroot}%{python3_sitearch}" %{__python3} -c "import numpy ; numpy.test('full', verbose=3)"
+PATH="$PATH:%{buildroot}%{_bindir}" PYTHONPATH="%{buildroot}%{python3_sitearch}" %{__python3} -c "import numpy ; numpy.test('full', verbose=3)"
 %{?scl:EOF}
 
 %files
@@ -152,6 +157,9 @@ PYTHONPATH="%{buildroot}%{python3_sitearch}" %{__python3} -c "import numpy ; num
 %{python3_sitearch}/%{pkg_name}/f2py
 
 %changelog
+* Thu Mar 24 2016 Nikola Forró <nforro@redhat.com> - 1:1.10.4-3
+- Fix unit tests, rhbz#1319255
+
 * Tue Feb 16 2016 Nikola Forró <nforro@redhat.com> - 1:1.10.4-2
 - Update shebangs to point to interpreter in collection, rhbz#1289567
 
