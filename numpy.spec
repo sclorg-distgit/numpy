@@ -8,7 +8,7 @@
 
 Name:           %{?scl_prefix}numpy
 Version:        1.10.4
-Release:        3%{?dist}
+Release:        4%{?dist}
 Epoch:          1
 Summary:        A fast multidimensional array facility for Python
 
@@ -20,6 +20,7 @@ Source0:        http://downloads.sourceforge.net/numpy/%{pkg_name}-%{version}%{?
 
 # Resolves rhbz#1319255
 Patch0:         extend-glibc-blacklist.patch
+Patch1:         fix-f2py-test.patch
 
 BuildRequires:  %{?scl_prefix}python-devel lapack-devel %{?scl_prefix}python-setuptools gcc-gfortran atlas-devel %{?scl_prefix}python-nose
 Requires:       %{?scl_prefix}python-nose
@@ -51,6 +52,7 @@ This package includes a version of f2py that works properly with NumPy.
 %prep
 %setup -q -n %{pkg_name}-%{version}%{?relc}
 %patch0 -p1
+%patch1 -p1
 
 # workaround for rhbz#849713
 # http://mail.scipy.org/pipermail/numpy-discussion/2012-July/063530.html
@@ -157,6 +159,9 @@ PATH="$PATH:%{buildroot}%{_bindir}" PYTHONPATH="%{buildroot}%{python3_sitearch}"
 %{python3_sitearch}/%{pkg_name}/f2py
 
 %changelog
+* Fri Apr 22 2016 Nikola Forró <nforro@redhat.com> - 1:1.10.4-4
+- Fix f2py test, rhbz#1319255
+
 * Thu Mar 24 2016 Nikola Forró <nforro@redhat.com> - 1:1.10.4-3
 - Fix unit tests, rhbz#1319255
 
