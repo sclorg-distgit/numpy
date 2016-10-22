@@ -1,0 +1,43 @@
+From ee3be5e2f4674602ff4ca7bdff20663469ba940a Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Nikola=20Forr=C3=B3?= <nforro@redhat.com>
+Date: Fri, 22 Apr 2016 20:12:47 +0200
+Subject: [PATCH] TST: Fix f2py test for non-versioned python executables
+
+Backported upstream commits:
+588a1c3e42302418de80eb5f7da4ad375228396e
+69a2ca41e2316e0eaa11ac2b9a618926815dad6d
+---
+ numpy/tests/test_scripts.py | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/numpy/tests/test_scripts.py b/numpy/tests/test_scripts.py
+index 434f17a..da5c7e1 100644
+--- a/numpy/tests/test_scripts.py
++++ b/numpy/tests/test_scripts.py
+@@ -67,10 +67,13 @@ def test_f2py():
+         success = stdout.strip() == asbytes('2')
+         assert_(success, "Warning: f2py not found in path")
+     else:
+-        # unclear what f2py cmd was installed as, check plain (f2py) and
+-        # current python version specific one (f2py3.4)
+-        f2py_cmds = ('f2py', 'f2py' + basename(sys.executable)[6:])
++        version = sys.version_info
++        major = str(version.major)
++        minor = str(version.minor)
++
++        f2py_cmds = ('f2py', 'f2py' + major, 'f2py' + major + '.' + minor)
+         success = False
++
+         for f2py_cmd in f2py_cmds:
+             try:
+                 code, stdout, stderr = run_command([f2py_cmd, '-v'])
+@@ -79,4 +82,5 @@ def test_f2py():
+                 break
+             except:
+                 pass
+-        assert_(success, "Warning: neither %s nor %s found in path" % f2py_cmds)
++        msg = "Warning: neither %s nor %s nor %s found in path" % f2py_cmds
++        assert_(success, msg)
+-- 
+2.4.11
+
